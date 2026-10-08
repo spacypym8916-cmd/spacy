@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PlaylistCut</title>
+<meta name="description" content="PlaylistCut is a playlist editor that cleans up, trims and reshapes music playlists in minutes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column; the hero pairs the pitch with a live-looking track list where the cut is the only loud element. */
+:root {
+  --bg: #f5f6f9;
+  --surface: #ffffff;
+  --fg: #171a26;
+  --muted: #5d6275;
+  --line: #dfe2ea;
+  --cut: #d6336c;
+  --cut-soft: #fbe3ec;
+  --font-display: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12141c; --surface: #1b1e29; --fg: #eceef4; --muted: #a2a7b8;
+    --line: #2c3040; --cut: #ff5c8f; --cut-soft: #3a1d2a; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12141c; --surface: #1b1e29; --fg: #eceef4; --muted: #a2a7b8;
+  --line: #2c3040; --cut: #ff5c8f; --cut-soft: #3a1d2a; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font: 400 1rem/1.6 var(--font-body);
+}
+.wrap {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding-inline: max(16px, 4vw);
+}
+a { color: inherit; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--cut); outline-offset: 3px; }
+
+header.top {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding-block: 1.5rem;
+}
+.logo {
+  font: 700 1.25rem/1 var(--font-display);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: .5rem;
+}
+.logo .mark {
+  width: 1.1rem; height: 1.1rem; border-radius: 3px;
+  background: linear-gradient(135deg, var(--fg) 0 46%, var(--cut) 46% 54%, var(--fg) 54%);
+}
+nav.top-links { display: flex; gap: 1.25rem; font-size: .95rem; color: var(--muted); }
+nav.top-links a { text-decoration: none; }
+nav.top-links a:hover { color: var(--fg); }
+
+.hero {
+  display: grid; grid-template-columns: 1.05fr 1fr; gap: clamp(2rem, 5vw, 4rem);
+  align-items: center;
+  padding-block: clamp(2rem, 6vw, 4.5rem);
+}
+.hero > * { min-width: 0; }
+.eyebrow {
+  font: 500 .75rem/1 var(--font-mono);
+  text-transform: uppercase; letter-spacing: .12em;
+  color: var(--cut);
+}
+h1 {
+  font: 700 clamp(2.4rem, 5.5vw, 4rem)/1.02 var(--font-display);
+  letter-spacing: -0.03em;
+  margin: .9rem 0 1.1rem;
+  text-wrap: balance;
+}
+.lede { font-size: 1.15rem; color: var(--muted); max-width: 34rem; margin: 0 0 1.75rem; }
+.cta-row { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.btn {
+  display: inline-block; text-decoration: none;
+  font: 500 1rem/1 var(--font-body);
+  padding: .9rem 1.3rem; border-radius: 999px;
+  background: var(--fg); color: var(--bg);
+}
+.btn:hover { background: var(--cut); color: #fff; }
+.cta-note { font-size: .9rem; color: var(--muted); }
+
+/* The track list: the one object on the page that gets card treatment. */
+.tracklist {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px -24px rgba(23, 26, 38, .35);
+  overflow: hidden;
+  font-size: .95rem;
+}
+.tl-head {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  padding: 1rem 1.1rem .8rem;
+  border-bottom: 1px solid var(--line);
+}
+.tl-title { font: 700 1rem/1.2 var(--font-display); }
+.tl-meta { font: 400 .78rem/1 var(--font-mono); color: var(--muted); white-space: nowrap; }
+.tl-meta b { color: var(--cut); font-weight: 500; }
+ol.tracks { list-style: none; margin: 0; padding: 0; counter-reset: t; }
+ol.tracks li {
+  counter-increment: t;
+  display: grid; grid-template-columns: 1.6rem 1fr auto; gap: .75rem; align-items: center;
+  padding: .55rem 1.1rem;
+  border-bottom: 1px solid var(--line);
+}
+ol.tracks li:last-child { border-bottom: 0; }
+ol.tracks li::before {
+  content: counter(t, decimal-leading-zero);
+  font: 400 .75rem/1 var(--font-mono); color: var(--muted);
+}
+.trk { min-width: 0; }
+.trk span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.trk small { color: var(--muted); font-size: .8rem; }
+.dur { font: 400 .8rem/1 var(--font-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+li.cut { background: var(--cut-soft); }
+li.cut .trk span { text-decoration: line-through; text-decoration-color: var(--cut); text-decoration-thickness: 2px; }
+li.cut .dur { color: var(--cut); }
+.tag {
+  font: 500 .65rem/1 var(--font-mono); text-transform: uppercase; letter-spacing: .08em;
+  color: var(--cut); margin-left: .4rem; display: inline-block; font-style: normal;
+}
+.cutline {
+  position: relative; height: 0; border-top: 2px dashed var(--cut);
+  margin: 0 1.1rem;
+}
+.cutline::after {
+  content: "90:00 target";
+  position: absolute; right: 0; top: -.65rem;
+  font: 500 .68rem/1 var(--font-mono); letter-spacing: .06em;
+  background: var(--surface); color: var(--cut); padding: .15rem .4rem;
+}
+.tl-foot { padding: .7rem 1.1rem; font: 400 .72rem/1.4 var(--font-mono); color: var(--muted); border-top: 1px solid var(--line); }
+
+section { padding-block: clamp(2.5rem, 6vw, 4rem); border-top: 1px solid var(--line); }
+h2 {
+  font: 700 clamp(1.6rem, 3vw, 2.1rem)/1.15 var(--font-display);
+  letter-spacing: -0.02em; margin: 0 0 .6rem; text-wrap: balance;
+}
+.section-lede { color: var(--muted); max-width: 40rem; margin: 0 0 2rem; }
+.features { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem 3rem; }
+.feature h3 { font: 700 1.1rem/1.3 var(--font-display); margin: 0 0 .35rem; }
+.feature p { margin: 0; color: var(--muted); max-width: 30rem; }
+.feature code {
+  font: 500 .78rem/1 var(--font-mono); color: var(--cut);
+  display: block; margin-bottom: .55rem; letter-spacing: .04em;
+}
+
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 3rem; }
+.split p { margin: 0 0 1rem; max-width: 34rem; }
+.status {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font: 500 .8rem/1 var(--font-mono); padding: .45rem .7rem; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface);
+}
+.status::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--cut); }
+
+.contact-mail {
+  font: 500 clamp(1.25rem, 3vw, 1.75rem)/1.2 var(--font-display);
+  word-break: break-all; text-decoration-color: var(--cut); text-underline-offset: .2em;
+}
+footer {
+  padding-block: 2rem 2.5rem; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem;
+  color: var(--muted); font-size: .85rem;
+}
+
+@media (max-width: 52rem) {
+  .hero, .split { grid-template-columns: minmax(0, 1fr); }
+  .features { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 30rem) {
+  nav.top-links { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="logo" href="/"><span class="mark" aria-hidden="true"></span>PlaylistCut</a>
+    <nav class="top-links" aria-label="Main">
+      <a href="#product">Product</a>
+      <a href="#about">About</a>
+      <a href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <p class="eyebrow">Playlist editor &middot; Early access</p>
+        <h1>Make the playlist you meant to make.</h1>
+        <p class="lede">PlaylistCut cleans up long, messy music playlists. Remove duplicates, merge and split lists, reorder tracks, and cut a playlist down to the exact length you need.</p>
+        <div class="cta-row">
+          <a class="btn" href="#contact">Request early access</a>
+          <span class="cta-note">admin@playlistcut.shop</span>
+        </div>
+      </div>
+
+      <figure class="tracklist" aria-label="Example: a playlist trimmed to 90 minutes" style="margin:0">
+        <div class="tl-head">
+          <span class="tl-title">Sunday Drive</span>
+          <span class="tl-meta">4:12:08 &rarr; <b>1:29:41</b></span>
+        </div>
+        <ol class="tracks">
+          <li><div class="trk"><span>Golden Hour Highway</span><small>Example Artist</small></div><span class="dur">4:05</span></li>
+          <li class="cut"><div class="trk"><span>Golden Hour Highway <em class="tag">duplicate</em></span><small>Example Artist</small></div><span class="dur">4:05</span></li>
+          <li><div class="trk"><span>Coastline Radio</span><small>Sample Band</small></div><span class="dur">3:48</span></li>
+          <li><div class="trk"><span>Window Down</span><small>Placeholder Duo</small></div><span class="dur">3:21</span></li>
+          <li class="cut"><div class="trk"><span>Window Down (Live) <em class="tag">near-duplicate</em></span><small>Placeholder Duo</small></div><span class="dur">5:57</span></li>
+          <li><div class="trk"><span>Last Exit Before the Sea</span><small>Example Artist</small></div><span class="dur">4:30</span></li>
+        </ol>
+        <div class="cutline" aria-hidden="true"></div>
+        <div class="tl-foot">Example playlist for illustration.</div>
+      </figure>
+    </div>
+
+    <section id="product">
+      <h2>What PlaylistCut does</h2>
+      <p class="section-lede">Playlists grow for years and nobody cleans them up. PlaylistCut handles the tedious edits in one pass, and you review every change before it is saved.</p>
+      <div class="features">
+        <div class="feature">
+          <code>DEDUPE</code>
+          <h3>Find duplicates</h3>
+          <p>Catch the same song added twice, including live, remastered and radio-edit versions that are easy to miss.</p>
+        </div>
+        <div class="feature">
+          <code>CUT TO LENGTH</code>
+          <h3>Fit a time limit</h3>
+          <p>Set a target such as 45 or 90 minutes, and PlaylistCut proposes which tracks to keep.</p>
+        </div>
+        <div class="feature">
+          <code>MERGE / SPLIT</code>
+          <h3>Merge and split lists</h3>
+          <p>Combine several playlists into one clean list, or break a huge one into smaller lists by mood, era or artist.</p>
+        </div>
+        <div class="feature">
+          <code>REORDER</code>
+          <h3>Reorder with a reason</h3>
+          <p>Sort by artist, year or length, or ask in plain words, like &ldquo;start slow and build up&rdquo;.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="about">
+      <div class="split">
+        <div>
+          <h2>About</h2>
+          <span class="status">Early access</span>
+        </div>
+        <div>
+          <p>PlaylistCut is an independent product built by a solo founder. We use Claude to understand plain-language requests and to match tracks that are the same song under different names, and Claude Code to build the product.</p>
+          <p>The product is in early access. If you manage big playlists and want to try it, get in touch.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <p class="section-lede">Questions, feedback or early access requests. We reply from this address.</p>
+      <a class="contact-mail" href="mailto:admin@playlistcut.shop">admin@playlistcut.shop</a>
+    </section>
+  </main>
+
+  <footer>
+    <span>&copy; 2026 PlaylistCut</span>
+    <span>playlistcut.shop</span>
+  </footer>
+
+</div>
+</body>
+</html>
