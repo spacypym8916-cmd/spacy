@@ -89,6 +89,15 @@ uv run check_blender.py
 
 애드온 포트를 바꿨다면 `--port <번호>`를 붙이세요. 오브젝트 목록은 애드온이 앞의 10개까지만 알려 주고, 전체 개수는 따로 표시됩니다.
 
+### 예제 장면: 서울 골목 사거리
+
+블렌더 MCP로 만드는 14초 원테이크 예제입니다. 같은 사거리에서 낮 → 밤 → 비로 빛과 날씨만 바뀝니다.
+자세한 내용은 [blender/README.md](blender/README.md)를 보세요.
+
+```bash
+uv run blender/run_in_blender.py
+```
+
 ### 문제 해결
 
 | 증상 | 해결 |
