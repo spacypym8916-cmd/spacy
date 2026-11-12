@@ -1,0 +1,84 @@
+{
+  "vertical": [
+    {
+      "name": "v_cafe",
+      "title": "카페",
+      "file": "v_cafe.png",
+      "aspect": 0.25
+    },
+    {
+      "name": "v_piano",
+      "title": "피아노학원",
+      "file": "v_piano.png",
+      "aspect": 0.25
+    },
+    {
+      "name": "v_dental",
+      "title": "치과",
+      "file": "v_dental.png",
+      "aspect": 0.25
+    },
+    {
+      "name": "v_karaoke",
+      "title": "노래연습장",
+      "file": "v_karaoke.png",
+      "aspect": 0.25
+    },
+    {
+      "name": "v_pcbang",
+      "title": "PC방",
+      "file": "v_pcbang.png",
+      "aspect": 0.25
+    }
+  ],
+  "horizontal": [
+    {
+      "name": "h_bunsik",
+      "title": "분식",
+      "file": "h_bunsik.png",
+      "aspect": 5.0
+    },
+    {
+      "name": "h_mart",
+      "title": "마트",
+      "file": "h_mart.png",
+      "aspect": 5.0
+    },
+    {
+      "name": "h_laundry",
+      "title": "세탁",
+      "file": "h_laundry.png",
+      "aspect": 5.0
+    },
+    {
+      "name": "h_pharmacy",
+      "title": "약국",
+      "file": "h_pharmacy.png",
+      "aspect": 5.0
+    },
+    {
+      "name": "h_chicken",
+      "title": "치킨",
+      "file": "h_chicken.png",
+      "aspect": 5.0
+    },
+    {
+      "name": "h_flower",
+      "title": "꽃집",
+      "file": "h_flower.png",
+      "aspect": 5.0
+    },
+    {
+      "name": "h_realty",
+      "title": "부동산",
+      "file": "h_realty.png",
+      "aspect": 5.0
+    }
+  ],
+  "corner": {
+    "name": "connect_ai_lab",
+    "title": "CONNECT AI LAB",
+    "file": "connect_ai_lab.png",
+    "aspect": 5.0
+  }
+}
